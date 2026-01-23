@@ -1,19 +1,6 @@
 /**
- * hsms-ts-sim - loopback / host / device simulator with HTTP API
- *
- * Endpoints:
- *  - POST /send { from: "host"|"device", text: "...", waitReply?: boolean }
- *  - POST /send-s1f1 { from: "host"|"device", text: "...", waitReply?: boolean }
- *  - POST /send-s1f2 { from: "host"|"device", text: "..." }
- *  - GET  /status
- *
- * By default this starts a loopback pair (Active host <-> Passive device) on HSMS port 7000.
- *
- * Build & run:
- *  - npm install
- *  - npm run build
- *  - npm start
- *  or for dev: npm run dev
+ * Complete server.ts with HSMS loopback + /send, /send-s1f1, /send-s1f2 and /send-custom.
+ * Replace your current src/server.ts with this file, then run `npm run build` and `npm start`.
  */
 
 import express from 'express';
@@ -42,6 +29,7 @@ const pendingReplies: Map<number, { resolve: (v: any) => void; timeout: NodeJS.T
 function wireConnection(conn: any, name: string) {
   conn.on('established', () => console.log(`${name} established`));
   conn.on('dropped', () => console.log(`${name} dropped`));
+
   conn.on('recv', (m: any) => {
     try {
       console.log(`${name} recv: ${m.toLongString ? m.toLongString() : m.toString()}`);
@@ -49,9 +37,19 @@ function wireConnection(conn: any, name: string) {
       console.log(`${name} recv (toString): ${m.toString ? m.toString() : JSON.stringify(m)}`);
     }
 
-    // Simple auto-reply example:
-    // If passive/device receives S1F1, reply with S1F1 response (builder.reply)
-    if (m.kind === Message.Type.DataMessage && m.toString && m.toString() === 'S1F1') {
+    // Structure print of items if DataMessage
+    if (m && m.kind === Message.Type.DataMessage && Array.isArray(m.items)) {
+      const items = m.items.map((it: any) => ({
+        name: it.name,
+        format: it.format,
+        value: it.value,
+        size: it.size
+      }));
+      console.log(`${name} recv items:`, JSON.stringify(items, null, 2));
+    }
+
+    // Simple auto-reply example for S1F1: reply 'OK'
+    if (m && m.kind === Message.Type.DataMessage && m.toString && m.toString() === 'S1F1') {
       const rsp = DataMessage.builder
         .reply(m)
         .items(DataItem.a('reply', 'OK', 2))
@@ -116,6 +114,39 @@ async function sendAndWaitIfNeeded(conn: any, msg: any, waitForReply = false, ti
   }
 }
 
+/**
+ * Helper: build DataItems from an "items" description array.
+ * Supports: A, U2, U4, I4, F4, F8, BOOL, LIST (list's value is array of child items)
+ */
+function buildDataItems(items: any[], DataItemRef: any) {
+  if (!items || !Array.isArray(items)) return [];
+  return items.map(it => {
+    const t = (it.type || 'A').toString().toUpperCase();
+    const name = it.name || 'item';
+    const val = it.value;
+    switch (t) {
+      case 'A':
+        return DataItemRef.a(name, String(val ?? ''), it.size || Math.max(1, String(val ?? '').length));
+      case 'U2':
+        return DataItemRef.u2(name, Number(val ?? 0));
+      case 'U4':
+        return DataItemRef.u4(name, Number(val ?? 0));
+      case 'I4':
+        return DataItemRef.i4(name, Number(val ?? 0));
+      case 'F4':
+        return DataItemRef.f4(name, Number(val ?? 0));
+      case 'F8':
+        return DataItemRef.f8(name, Number(val ?? 0));
+      case 'BOOL':
+        return DataItemRef.bool ? DataItemRef.bool(name, Boolean(val)) : DataItemRef.a(name, String(Boolean(val)), 1);
+      case 'LIST':
+        return DataItemRef.list(name, ...(buildDataItems(val || [], DataItemRef)));
+      default:
+        return DataItemRef.a(name, String(val ?? ''), it.size || Math.max(1, String(val ?? '').length));
+    }
+  });
+}
+
 // Generic /send: builds a DataMessage with stream 1 / function 1 by default
 app.post('/send', async (req, res) => {
   const { from, text, waitReply } = req.body || {};
@@ -138,8 +169,6 @@ app.post('/send', async (req, res) => {
   }
 });
 
-// S1F1 example (stream 1 func 1)
-// S1F1 is commonly a request that expects a reply (S1F2), but we demonstrate both
 app.post('/send-s1f1', async (req, res) => {
   const { from, text, waitReply } = req.body || {};
   if (!from || !text) return res.status(400).json({ error: 'require from and text' });
@@ -147,7 +176,7 @@ app.post('/send-s1f1', async (req, res) => {
   const msg = DataMessage.builder
     .device(1)
     .stream(1)
-    .func(1) // S1F1
+    .func(1)
     .replyExpected(Boolean(waitReply))
     .items(DataItem.a('payload', text, Math.max(1, Math.min(255, text.length))))
     .build();
@@ -161,7 +190,6 @@ app.post('/send-s1f1', async (req, res) => {
   }
 });
 
-// S1F2 example (stream 1 func 2) - typically a reply/alternate request depending on your use
 app.post('/send-s1f2', async (req, res) => {
   const { from, text } = req.body || {};
   if (!from || !text) return res.status(400).json({ error: 'require from and text' });
@@ -169,7 +197,7 @@ app.post('/send-s1f2', async (req, res) => {
   const msg = DataMessage.builder
     .device(1)
     .stream(1)
-    .func(2) // S1F2
+    .func(2)
     .replyExpected(false)
     .items(DataItem.a('payload', text, Math.max(1, Math.min(255, text.length))))
     .build();
@@ -183,11 +211,38 @@ app.post('/send-s1f2', async (req, res) => {
   }
 });
 
+// NEW: /send-custom - arbitrary stream/func and flexible items
+app.post('/send-custom', async (req, res) => {
+  const { from, stream, func, items, waitReply } = req.body || {};
+  if (!from || stream == null || func == null) {
+    return res.status(400).json({ error: 'require from, stream, func' });
+  }
+
+  try {
+    const builtItems = buildDataItems(items || [{ type: 'A', name: 'payload', value: 'payload' }], DataItem);
+    const msg = DataMessage.builder
+      .device(1)
+      .stream(Number(stream))
+      .func(Number(func))
+      .replyExpected(Boolean(waitReply))
+      .items(...builtItems)
+      .build();
+
+    const conn = from === 'host' ? hostConn : deviceConn;
+    if (!conn) return res.status(400).json({ error: 'connection not started' });
+
+    const result = await sendAndWaitIfNeeded(conn, msg, Boolean(waitReply), 10000);
+    res.json({ ok: true, result });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message || String(err) });
+  }
+});
+
 app.get('/status', (req, res) => {
   res.json({
     http: `http://localhost:${HTTP_PORT}`,
     hsmsPort: HSMS_PORT,
-    note: 'Check server console for events (established/recv/trx-complete)'
+    note: 'Check server console for HSMS events'
   });
 });
 
