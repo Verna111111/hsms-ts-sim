@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HSMS Web Controller</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main>
+    <h1>HSMS Web Controller</h1>
+
+    <section class="panel">
+      <label>From:
+        <select id="from">
+          <option value="host">host (active)</option>
+          <option value="device">device (passive)</option>
+        </select>
+      </label>
+
+      <label>Stream:
+        <input id="stream" type="number" min="0" value="1" />
+      </label>
+
+      <label>Function:
+        <input id="func" type="number" min="0" value="1" />
+      </label>
+
+      <label>waitReply:
+        <input id="waitReply" type="checkbox" />
+      </label>
+
+      <div id="itemsContainer">
+        <h4>Data Items</h4>
+        <div id="items"></div>
+        <button id="addItem">Add ASCII Item</button>
+      </div>
+
+      <div class="actions">
+        <button id="sendCustom">Send Custom (SxFy)</button>
+        <button id="sendS1F1">Send S1F1</button>
+        <button id="sendS1F2">Send S1F2</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>Request / Response</h3>
+      <pre id="reqJson" class="box"></pre>
+      <pre id="resJson" class="box"></pre>
+    </section>
+
+    <section class="panel">
+      <h3>Notes</h3>
+      <ul>
+        <li>Server console (terminal) 會顯示 HSMS 交握與 recv log。</li>
+        <li>如果等待回覆(waitReply)，請確保被動端有回覆對應的 SxFy。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

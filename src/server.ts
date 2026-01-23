@@ -20,6 +20,8 @@ const {
 const app = express();
 app.use(bodyParser.json());
 
+app.use(express.static('public'));
+
 const HTTP_PORT = Number(process.env.HTTP_PORT || 3000);
 const HSMS_PORT = Number(process.env.HSMS_PORT || 7000);
 

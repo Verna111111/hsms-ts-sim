@@ -1,0 +1,11 @@
+/* small UI styling */
+body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; padding: 20px; background:#f7f9fc; color:#111; }
+main { max-width: 900px; margin: 0 auto; }
+.panel { background: #fff; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 12px; border-radius: 6px; }
+label { display:inline-block; margin-right: 12px; }
+.actions { margin-top: 10px; }
+button { margin-right:8px; }
+.itemRow { display:inline-flex; gap:6px; align-items:center; margin-bottom:6px; }
+.itemRow input, .itemRow select { padding:4px; }
+.box { background:#0f1724; color:#d1fae5; padding:10px; height:200px; overflow:auto; white-space:pre-wrap; }
+pre.box { font-size:12px; }
