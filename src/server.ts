@@ -113,14 +113,11 @@ async function sendAndWaitIfNeeded(conn: any, msg: any, waitForReply = false, ti
     return { status: 'sent' };
   }
 }
-
-/**
- * Helper: build DataItems from an "items" description array.
- * Supports: A, U2, U4, I4, F4, F8, BOOL, LIST (list's value is array of child items)
- */
-function buildDataItems(items: any[], DataItemRef: any) {
+// Helper: build DataItems from an "items" description array.
+// Returns an array of DataItem objects (type any[] for TS strict)
+function buildDataItems(items: any[], DataItemRef: any): any[] {
   if (!items || !Array.isArray(items)) return [];
-  return items.map(it => {
+  return items.map((it: any): any => {
     const t = (it.type || 'A').toString().toUpperCase();
     const name = it.name || 'item';
     const val = it.value;
