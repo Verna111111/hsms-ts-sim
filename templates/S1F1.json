@@ -1,0 +1,29 @@
+{
+  "stream": 1,
+  "func": 1,
+  "description": "Example S1F1 with nested lists, boolean array, float and binary",
+  "items": [
+    {
+      "type": "LIST",
+      "name": "L",
+      "value": [
+        {
+          "type": "LIST",
+          "name": "L",
+          "value": [
+            { "type": "BOOL_ARRAY", "name": "flags", "value": "{{flags}}" },
+            { "type": "F4", "name": "fval", "value": "{{f4}}" },
+            {
+              "type": "LIST",
+              "name": "inner",
+              "value": [
+                { "type": "F8", "name": "dval", "value": "{{f8}}" }
+              ]
+            }
+          ]
+        },
+        { "type": "B", "name": "bin", "value": "{{bin}}" }
+      ]
+    }
+  ]
+}

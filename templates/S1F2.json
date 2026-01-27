@@ -1,0 +1,29 @@
+{
+  "stream": 1,
+  "func": 2,
+  "description": "Example S1F2 reply containing ASCII messages, nested list and binary",
+  "items": [
+    { "type": "A", "name": "msg1", "value": "{{msg1}}" },
+    { "type": "A", "name": "msg2", "value": "{{msg2}}" },
+    {
+      "type": "LIST",
+      "name": "biglist",
+      "value": [
+        { "type": "A", "name": "label1", "value": "{{label1}}" },
+        { "type": "A", "name": "label2", "value": "{{label2}}" },
+        { "type": "BOOL_ARRAY", "name": "flags", "value": "{{flags}}" },
+        { "type": "F4", "name": "fval", "value": "{{f4}}" },
+        {
+          "type": "LIST",
+          "name": "inner2",
+          "value": [
+            { "type": "A", "name": "t", "value": "{{tstr}}" },
+            { "type": "F8", "name": "dval", "value": "{{f8}}" }
+          ]
+        },
+        { "type": "A", "name": "extra", "value": "{{extra}}" }
+      ]
+    },
+    { "type": "B", "name": "bin", "value": "{{bin}}" }
+  ]
+}
