@@ -3,6 +3,6 @@
   "func": 4,
   "description": "Example S1F4 with I2",
   "items": [
-    { "type": "I2", "name": "code", "value": "(please change this)" }
+    { "type": "I2", "name": "code", "value": "{{code}}" }
   ]
 }

@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HSMS Web Controller</title>
+  <title>HSMS Template Sender</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <main>
-    <h1>HSMS Web Controller</h1>
+    <h1>HSMS Template Sender</h1>
 
     <section class="panel">
       <label>From:
@@ -18,53 +18,47 @@
         </select>
       </label>
 
-      <label>Stream:
-        <input id="stream" type="number" min="0" value="1" />
-      </label>
-
-      <label>Function:
-        <input id="func" type="number" min="0" value="1" />
-      </label>
-
-      <label>waitReply:
-        <input id="waitReply" type="checkbox" />
-      </label>
-
-      <div id="itemsContainer">
-        <h4>Data Items</h4>
-        <div id="items"></div>
-        <button id="addItem">Add ASCII Item</button>
-      </div>
-
       <label>Template:
         <select id="templateSelect">
           <option value="">-- choose template --</option>
         </select>
       </label>
+
       <button id="loadTemplate">Load Template</button>
       <button id="sendTemplate">Send Template</button>
 
-      <h4>Template editor (JSON)</h4>
-      <textarea id="templateEditor" style="width:100%;height:200px;"></textarea>
+      <div style="margin-top:12px;">
+        <strong>Template editor (JSON)</strong>
+        <textarea id="templateEditor" style="width:100%;height:220px;" placeholder='{"stream":1,"func":1,"items":[...]}'></textarea>
+      </div>
 
-      <div class="actions">
-        <button id="sendCustom">Send Custom (SxFy)</button>
-        <button id="sendS1F1">Send S1F1</button>
-        <button id="sendS1F2">Send S1F2</button>
+      <div style="margin-top:12px;">
+        <strong>Values (JSON)</strong>
+        <div style="font-size:13px;color:#666;margin-bottom:6px;">Fill keys for placeholders like <code>{{key}}</code> (e.g. <code>{"code":1}</code>)</div>
+        <textarea id="templateValues" style="width:100%;height:90px;" placeholder='{"code":1, "flags":[1,0]}'></textarea>
       </div>
     </section>
 
     <section class="panel">
       <h3>Request / Response</h3>
-      <pre id="reqJson" class="box"></pre>
-      <pre id="resJson" class="box"></pre>
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1">
+          <h4>Request</h4>
+          <pre id="reqJson" class="box">{ }</pre>
+        </div>
+        <div style="flex:1">
+          <h4>Response</h4>
+          <pre id="resJson" class="box">{ }</pre>
+        </div>
+      </div>
     </section>
 
     <section class="panel">
       <h3>Notes</h3>
       <ul>
-        <li>Server console (terminal) will display HSMS handshake and recv log. </li>
-        <li>If you wait for a reply (waitReply), please ensure that the passive side has the corresponding SxFy reply. </li>
+        <li>The UI now only uses <code>/templates</code> and <code>/send-template</code>.</li>
+        <li>Provide values for template placeholders (<code>{{key}}</code>) via the Values box or replace them directly in the Template editor.</li>
+        <li>Server console shows HSMS send/recv logs; use that to verify message exchange.</li>
       </ul>
     </section>
   </main>
